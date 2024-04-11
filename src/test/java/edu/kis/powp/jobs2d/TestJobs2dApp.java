@@ -10,15 +10,14 @@ import edu.kis.legacy.drawer.shape.LineFactory;
 import edu.kis.powp.appbase.Application;
 import edu.kis.powp.jobs2d.command.gui.CommandManagerWindow;
 import edu.kis.powp.jobs2d.command.gui.CommandManagerWindowCommandChangeObserver;
-import edu.kis.powp.jobs2d.drivers.DriversComposite;
-import edu.kis.powp.jobs2d.drivers.UsageMonitorDriverDecorator;
+import edu.kis.powp.jobs2d.drivers.*;
+import edu.kis.powp.jobs2d.drivers.LoggerDriver;
+import edu.kis.powp.jobs2d.drivers.MouseClickConverter;
 import edu.kis.powp.jobs2d.drivers.adapter.LineDriverAdapter;
-import edu.kis.powp.jobs2d.drivers.RecordingDriverDecorator;
 import edu.kis.powp.jobs2d.events.*;
 import edu.kis.powp.jobs2d.features.CommandsFeature;
 import edu.kis.powp.jobs2d.features.DrawerFeature;
 import edu.kis.powp.jobs2d.features.DriverFeature;
-import edu.kis.powp.jobs2d.drivers.LoggerDriver;
 import edu.kis.powp.jobs2d.features.RecordFeature;
 
 public class TestJobs2dApp {
@@ -54,10 +53,6 @@ public class TestJobs2dApp {
         application.addTest("Run command", new SelectRunCurrentCommandOptionListener(DriverFeature.getDriverManager()));
 
     }
-  
-    private static void setupVisitorTest(Application application) {
-        application.addTest("Show current command stats", new VisitorTest());
-    }
 
     /**
      * Setup driver manager, and set default Job2dDriver for application.
@@ -78,23 +73,7 @@ public class TestJobs2dApp {
 
         driver = new RecordingDriverDecorator(new LineDriverAdapter(drawerController, LineFactory.getSpecialLine(), "special"));
         DriverFeature.addDriver("Special Line Simulator with Recording Support", driver);
-        driver = new LineDriverAdapter(drawerController, LineFactory.getSpecialLine(), "special");
-        DriverFeature.addDriver("Special line Simulator", driver);
-
-        driver = new LoggerDriver(false);
-        UsageMonitorDriverDecorator usageMonitorDriver = new UsageMonitorDriverDecorator(driver);
-        DriverFeature.addDriver("Usage monitor with logger", usageMonitorDriver);
-
-        driver = new LineDriverAdapter(drawerController, LineFactory.getSpecialLine(), "special");
-        UsageMonitorDriverDecorator usageMonitorDriver2 = new UsageMonitorDriverDecorator(driver);
-        DriverFeature.addDriver("Special line Simulator with usage monitor", usageMonitorDriver2);
-
         DriverFeature.updateDriverInfo();
-
-        DriversComposite driversComposite = new DriversComposite();
-        driversComposite.addDriver(new LineDriverAdapter(drawerController, LineFactory.getBasicLine(), "basic"));
-        driversComposite.addDriver(new LoggerDriver(true));
-        DriverFeature.addDriver("BasicLine with Logger", driversComposite);
     }
 
     private static void setupWindows(Application application) {
@@ -114,7 +93,7 @@ public class TestJobs2dApp {
      */
     private static void setupLogger(Application application) {
 
-        application.addComponentMenu(Logger.class, "Logger", 0);
+        application.addComponentMenu(Logger.class, "Logger (with recording support)", 0);
         application.addComponentMenuElement(Logger.class, "Clear log",
                 (ActionEvent e) -> application.flushLoggerOutput());
         application.addComponentMenuElement(Logger.class, "Fine level", (ActionEvent e) -> logger.setLevel(Level.FINE));
@@ -124,6 +103,10 @@ public class TestJobs2dApp {
         application.addComponentMenuElement(Logger.class, "Severe level",
                 (ActionEvent e) -> logger.setLevel(Level.SEVERE));
         application.addComponentMenuElement(Logger.class, "OFF logging", (ActionEvent e) -> logger.setLevel(Level.OFF));
+    }
+
+    private static void setupMouseHandler(Application application) {
+        MouseClickConverter mouseClickConverter = new MouseClickConverter(application.getFreePanel());
     }
 
     /**
@@ -140,9 +123,10 @@ public class TestJobs2dApp {
                 setupDrivers(app);
                 setupPresetTests(app);
                 setupCommandTests(app);
-                setupVisitorTest(app);
                 setupLogger(app);
                 setupWindows(app);
+                setupMouseHandler(app);
+
 
                 app.setVisibility(true);
             }
